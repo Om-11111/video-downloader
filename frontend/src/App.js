@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-// ✅ Import image files from src
 import backgroundImage from "./assets/background.jpg";
 import logo from "./assets/logo.png";
 
@@ -25,18 +24,28 @@ function App() {
   const fetchInfo = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/fetch-info", { url });
+      const res = await axios.post(
+        "https://video-downloader-backend-rniz.onrender.com/api/fetch-info",
+        { url }
+      );
+
       setTitle(res.data.title);
 
-      // ✅ Include all formats that have video+audio, mp4, and a format_note
-      const filtered = res.data.formats.filter((f) => {
-        return f.ext === "mp4" && f.format_id && f.format_note && f.filesize;
-      });
+      const filtered = res.data.formats.filter(
+        (f) =>
+          f.ext === "mp4" &&
+          f.format_id &&
+          f.format_note &&
+          f.filesize &&
+          f.format_note !== "DASH audio"
+      );
 
       setFormats(filtered);
 
       const videoId = extractVideoID(url);
-      setThumbnail(videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
+      setThumbnail(
+        videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : ""
+      );
     } catch (err) {
       alert("❌ Failed to fetch video info.");
     } finally {
@@ -45,11 +54,19 @@ function App() {
   };
 
   const handleDownload = (format_id) => {
-    window.open(`http://localhost:5000/api/download?url=${encodeURIComponent(url)}&format_id=${format_id}`);
+    window.open(
+      `https://video-downloader-backend-rniz.onrender.com/api/download?url=${encodeURIComponent(
+        url
+      )}&format_id=${format_id}`
+    );
   };
 
   const handleDownloadAudio = () => {
-    window.open(`http://localhost:5000/api/download-audio?url=${encodeURIComponent(url)}`);
+    window.open(
+      `https://video-downloader-backend-rniz.onrender.com/api/download-audio?url=${encodeURIComponent(
+        url
+      )}`
+    );
   };
 
   return (
@@ -103,9 +120,13 @@ function App() {
                 <li key={f.format_id}>
                   <span>
                     {f.format_note} • {f.ext} •{" "}
-                    {f.filesize ? (f.filesize / 1000000).toFixed(2) + " MB" : "?"}
+                    {f.filesize
+                      ? (f.filesize / 1000000).toFixed(2) + " MB"
+                      : "?"}
                   </span>
-                  <button onClick={() => handleDownload(f.format_id)}>⬇ Download</button>
+                  <button onClick={() => handleDownload(f.format_id)}>
+                    ⬇ Download
+                  </button>
                 </li>
               ))}
             </ul>
